@@ -34,7 +34,18 @@ World of Warcraft\Interface\AddOns\OctoGroupBuffToggle\OctoGroupBuffToggle.toc
 
 - Tick **Buffs** below your party to toggle party-member buffs.
 - Tick **Buffs** beside your target frame to toggle target buffs.
-- Use `/groupbuffs` as a quick alternative for toggling party buffs.
+- Use slash commands to control every display independently:
+
+```text
+/groupbuffs group on|off|toggle
+/groupbuffs groupbox on|off|toggle
+/groupbuffs target on|off|toggle
+/groupbuffs targetbox on|off|toggle
+```
+
+Run `/groupbuffs` without arguments to see command help and the current status
+of all four switches. Hiding a checkbox does not disable its buffs; the buff
+display remains independently controllable through its slash command.
 
 Your choices are saved account-wide.
 

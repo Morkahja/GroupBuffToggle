@@ -17,6 +17,14 @@ local function TargetBuffsEnabled()
     return OctoGroupBuffsDB and OctoGroupBuffsDB.targetEnabled == true
 end
 
+local function GroupCheckboxEnabled()
+    return not OctoGroupBuffsDB or OctoGroupBuffsDB.groupCheckbox ~= false
+end
+
+local function TargetCheckboxEnabled()
+    return not OctoGroupBuffsDB or OctoGroupBuffsDB.targetCheckbox ~= false
+end
+
 local function HideMemberBuffs(member)
     local container = buffFrames[member]
     if not container then return end
@@ -107,7 +115,7 @@ local function UpdateTargetBuffs()
     if OctoTargetBuffsCheckButton then
         OctoTargetBuffsCheckButton:ClearAllPoints()
         OctoTargetBuffsCheckButton:SetPoint("LEFT", TargetFrame, "RIGHT", 4, -38)
-        if UnitExists("target") and TargetFrame:IsShown() then
+        if TargetCheckboxEnabled() and UnitExists("target") and TargetFrame:IsShown() then
             OctoTargetBuffsCheckButton:Show()
         else
             OctoTargetBuffsCheckButton:Hide()
@@ -173,7 +181,7 @@ local function UpdateCheckboxPosition()
     end
 
     OctoGroupBuffsCheckButton:ClearAllPoints()
-    if anchor then
+    if anchor and GroupCheckboxEnabled() then
         OctoGroupBuffsCheckButton:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 4, -6)
         OctoGroupBuffsCheckButton:Show()
     else
@@ -236,6 +244,8 @@ events:SetScript("OnEvent", function()
         OctoGroupBuffsDB = OctoGroupBuffsDB or {}
         if OctoGroupBuffsDB.enabled == nil then OctoGroupBuffsDB.enabled = false end
         if OctoGroupBuffsDB.targetEnabled == nil then OctoGroupBuffsDB.targetEnabled = false end
+        if OctoGroupBuffsDB.groupCheckbox == nil then OctoGroupBuffsDB.groupCheckbox = true end
+        if OctoGroupBuffsDB.targetCheckbox == nil then OctoGroupBuffsDB.targetCheckbox = true end
         CreateCheckbox()
     end
     UpdateAll()
@@ -249,9 +259,44 @@ events:SetScript("OnUpdate", function()
 end)
 
 SLASH_OCTOGROUPBUFFS1 = "/groupbuffs"
-SlashCmdList["OCTOGROUPBUFFS"] = function()
+SlashCmdList["OCTOGROUPBUFFS"] = function(message)
     OctoGroupBuffsDB = OctoGroupBuffsDB or {}
-    OctoGroupBuffsDB.enabled = not BuffsEnabled()
+    message = string.lower(message or "")
+    message = string.gsub(message, "^%s+", "")
+    message = string.gsub(message, "%s+$", "")
+
+    local _, _, control, action = string.find(message, "^(%S+)%s+(%S+)$")
+    local key
+    if control == "group" or control == "party" then
+        key = "enabled"
+    elseif control == "groupbox" or control == "groupcheckbox" or control == "partybox" then
+        key = "groupCheckbox"
+    elseif control == "target" then
+        key = "targetEnabled"
+    elseif control == "targetbox" or control == "targetcheckbox" then
+        key = "targetCheckbox"
+    end
+
+    if key and (action == "on" or action == "off" or action == "toggle") then
+        if action == "toggle" then
+            OctoGroupBuffsDB[key] = not OctoGroupBuffsDB[key]
+        else
+            OctoGroupBuffsDB[key] = action == "on"
+        end
+        DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99Octo Group Buffs:|r " .. control .. " " .. (OctoGroupBuffsDB[key] and "on" or "off") .. ".")
+    else
+        DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99Octo Group Buffs commands:|r")
+        DEFAULT_CHAT_FRAME:AddMessage("/groupbuffs group on|off|toggle")
+        DEFAULT_CHAT_FRAME:AddMessage("/groupbuffs groupbox on|off|toggle")
+        DEFAULT_CHAT_FRAME:AddMessage("/groupbuffs target on|off|toggle")
+        DEFAULT_CHAT_FRAME:AddMessage("/groupbuffs targetbox on|off|toggle")
+        DEFAULT_CHAT_FRAME:AddMessage("Party buffs: " .. (BuffsEnabled() and "on" or "off")
+            .. ", party checkbox: " .. (GroupCheckboxEnabled() and "on" or "off")
+            .. ", target buffs: " .. (TargetBuffsEnabled() and "on" or "off")
+            .. ", target checkbox: " .. (TargetCheckboxEnabled() and "on" or "off"))
+    end
+
     if OctoGroupBuffsCheckButton then OctoGroupBuffsCheckButton:SetChecked(BuffsEnabled()) end
+    if OctoTargetBuffsCheckButton then OctoTargetBuffsCheckButton:SetChecked(TargetBuffsEnabled()) end
     UpdateAll()
 end

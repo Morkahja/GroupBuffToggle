@@ -2,7 +2,7 @@
 ## Title: Octo Group Buff Toggle
 ## Notes: Adds a Buffs checkbox below the party and shows member buffs beside the group frames.
 ## Author: Morkahja
-## Version: 1.1.0
+## Version: 1.2.0
 ## SavedVariables: OctoGroupBuffsDB
 
 OctoGroupBuffToggle.lua
