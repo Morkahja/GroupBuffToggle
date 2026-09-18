@@ -1,4 +1,4 @@
--- Octo Group Buff Toggle - OctoWoW / Vanilla 1.12
+-- Group Buff Toggle - World of Warcraft 1.12
 
 local MAX_MEMBERS = 4
 local MAX_BUFFS = 16
@@ -10,19 +10,19 @@ local updateElapsed = 0
 local targetBuffFrame
 
 local function BuffsEnabled()
-    return OctoGroupBuffsDB and OctoGroupBuffsDB.enabled == true
+    return GroupBuffsDB and GroupBuffsDB.enabled == true
 end
 
 local function TargetBuffsEnabled()
-    return OctoGroupBuffsDB and OctoGroupBuffsDB.targetEnabled == true
+    return GroupBuffsDB and GroupBuffsDB.targetEnabled == true
 end
 
 local function GroupCheckboxEnabled()
-    return not OctoGroupBuffsDB or OctoGroupBuffsDB.groupCheckbox ~= false
+    return not GroupBuffsDB or GroupBuffsDB.groupCheckbox ~= false
 end
 
 local function TargetCheckboxEnabled()
-    return not OctoGroupBuffsDB or OctoGroupBuffsDB.targetCheckbox ~= false
+    return not GroupBuffsDB or GroupBuffsDB.targetCheckbox ~= false
 end
 
 local function HideMemberBuffs(member)
@@ -43,7 +43,7 @@ local function CreateMemberBuffs(member)
     local partyFrame = getglobal("PartyMemberFrame" .. member)
     if not partyFrame then return nil end
 
-    local container = CreateFrame("Frame", "OctoGroupBuffsMember" .. member, UIParent)
+    local container = CreateFrame("Frame", "GroupBuffsMember" .. member, UIParent)
     container:SetWidth(ICONS_PER_ROW * (ICON_SIZE + ICON_GAP))
     container:SetHeight(2 * (ICON_SIZE + ICON_GAP))
     container:SetPoint("TOPLEFT", partyFrame, "TOPRIGHT", 8, -4)
@@ -51,7 +51,7 @@ local function CreateMemberBuffs(member)
 
     local index
     for index = 1, MAX_BUFFS do
-        local button = CreateFrame("Button", "OctoGroupBuffButton" .. member .. "_" .. index, container)
+        local button = CreateFrame("Button", "GroupBuffButton" .. member .. "_" .. index, container)
         button:SetWidth(ICON_SIZE)
         button:SetHeight(ICON_SIZE)
         local column = math.mod(index - 1, ICONS_PER_ROW)
@@ -78,7 +78,7 @@ end
 
 local function CreateTargetBuffs()
     if targetBuffFrame or not TargetFrame then return end
-    targetBuffFrame = CreateFrame("Frame", "OctoTargetBuffs", UIParent)
+    targetBuffFrame = CreateFrame("Frame", "TargetBuffs", UIParent)
     targetBuffFrame:SetWidth(ICONS_PER_ROW * (ICON_SIZE + ICON_GAP))
     targetBuffFrame:SetHeight(2 * (ICON_SIZE + ICON_GAP))
     targetBuffFrame:SetPoint("TOPLEFT", TargetFrame, "TOPRIGHT", 38, -18)
@@ -86,7 +86,7 @@ local function CreateTargetBuffs()
 
     local index
     for index = 1, MAX_BUFFS do
-        local button = CreateFrame("Button", "OctoTargetBuffButton" .. index, targetBuffFrame)
+        local button = CreateFrame("Button", "TargetBuffButton" .. index, targetBuffFrame)
         button:SetWidth(ICON_SIZE)
         button:SetHeight(ICON_SIZE)
         local column = math.mod(index - 1, ICONS_PER_ROW)
@@ -112,13 +112,13 @@ end
 local function UpdateTargetBuffs()
     CreateTargetBuffs()
     if not targetBuffFrame then return end
-    if OctoTargetBuffsCheckButton then
-        OctoTargetBuffsCheckButton:ClearAllPoints()
-        OctoTargetBuffsCheckButton:SetPoint("LEFT", TargetFrame, "RIGHT", 4, -38)
+    if TargetBuffsCheckButton then
+        TargetBuffsCheckButton:ClearAllPoints()
+        TargetBuffsCheckButton:SetPoint("LEFT", TargetFrame, "RIGHT", 4, -38)
         if TargetCheckboxEnabled() and UnitExists("target") and TargetFrame:IsShown() then
-            OctoTargetBuffsCheckButton:Show()
+            TargetBuffsCheckButton:Show()
         else
-            OctoTargetBuffsCheckButton:Hide()
+            TargetBuffsCheckButton:Hide()
         end
     end
     targetBuffFrame:ClearAllPoints()
@@ -169,7 +169,7 @@ local function UpdateMember(member)
 end
 
 local function UpdateCheckboxPosition()
-    if not OctoGroupBuffsCheckButton then return end
+    if not GroupBuffsCheckButton then return end
     local anchor
     local member
     for member = MAX_MEMBERS, 1, -1 do
@@ -180,12 +180,12 @@ local function UpdateCheckboxPosition()
         end
     end
 
-    OctoGroupBuffsCheckButton:ClearAllPoints()
+    GroupBuffsCheckButton:ClearAllPoints()
     if anchor and GroupCheckboxEnabled() then
-        OctoGroupBuffsCheckButton:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 4, -6)
-        OctoGroupBuffsCheckButton:Show()
+        GroupBuffsCheckButton:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 4, -6)
+        GroupBuffsCheckButton:Show()
     else
-        OctoGroupBuffsCheckButton:Hide()
+        GroupBuffsCheckButton:Hide()
     end
 end
 
@@ -197,14 +197,14 @@ local function UpdateAll()
 end
 
 local function CreateCheckbox()
-    if OctoGroupBuffsCheckButton then return end
-    local checkbox = CreateFrame("CheckButton", "OctoGroupBuffsCheckButton", UIParent, "UICheckButtonTemplate")
+    if GroupBuffsCheckButton then return end
+    local checkbox = CreateFrame("CheckButton", "GroupBuffsCheckButton", UIParent, "UICheckButtonTemplate")
     checkbox:SetWidth(24)
     checkbox:SetHeight(24)
     getglobal(checkbox:GetName() .. "Text"):SetText("Buffs")
     checkbox:SetChecked(BuffsEnabled())
     checkbox:SetScript("OnClick", function()
-        OctoGroupBuffsDB.enabled = this:GetChecked() and true or false
+        GroupBuffsDB.enabled = this:GetChecked() and true or false
         UpdateAll()
     end)
     checkbox:SetScript("OnEnter", function()
@@ -215,14 +215,14 @@ local function CreateCheckbox()
     end)
     checkbox:SetScript("OnLeave", function() GameTooltip:Hide() end)
 
-    local targetCheckbox = CreateFrame("CheckButton", "OctoTargetBuffsCheckButton", UIParent, "UICheckButtonTemplate")
+    local targetCheckbox = CreateFrame("CheckButton", "TargetBuffsCheckButton", UIParent, "UICheckButtonTemplate")
     targetCheckbox:SetWidth(24)
     targetCheckbox:SetHeight(24)
     targetCheckbox:SetPoint("LEFT", TargetFrame, "RIGHT", 4, -38)
     getglobal(targetCheckbox:GetName() .. "Text"):SetText("Buffs")
     targetCheckbox:SetChecked(TargetBuffsEnabled())
     targetCheckbox:SetScript("OnClick", function()
-        OctoGroupBuffsDB.targetEnabled = this:GetChecked() and true or false
+        GroupBuffsDB.targetEnabled = this:GetChecked() and true or false
         UpdateTargetBuffs()
     end)
     targetCheckbox:SetScript("OnEnter", function()
@@ -241,11 +241,11 @@ events:RegisterEvent("PARTY_MEMBERS_CHANGED")
 events:RegisterEvent("UNIT_AURA")
 events:SetScript("OnEvent", function()
     if event == "VARIABLES_LOADED" then
-        OctoGroupBuffsDB = OctoGroupBuffsDB or {}
-        if OctoGroupBuffsDB.enabled == nil then OctoGroupBuffsDB.enabled = false end
-        if OctoGroupBuffsDB.targetEnabled == nil then OctoGroupBuffsDB.targetEnabled = false end
-        if OctoGroupBuffsDB.groupCheckbox == nil then OctoGroupBuffsDB.groupCheckbox = true end
-        if OctoGroupBuffsDB.targetCheckbox == nil then OctoGroupBuffsDB.targetCheckbox = true end
+        GroupBuffsDB = GroupBuffsDB or {}
+        if GroupBuffsDB.enabled == nil then GroupBuffsDB.enabled = false end
+        if GroupBuffsDB.targetEnabled == nil then GroupBuffsDB.targetEnabled = false end
+        if GroupBuffsDB.groupCheckbox == nil then GroupBuffsDB.groupCheckbox = true end
+        if GroupBuffsDB.targetCheckbox == nil then GroupBuffsDB.targetCheckbox = true end
         CreateCheckbox()
     end
     UpdateAll()
@@ -258,9 +258,9 @@ events:SetScript("OnUpdate", function()
     end
 end)
 
-SLASH_OCTOGROUPBUFFS1 = "/groupbuffs"
-SlashCmdList["OCTOGROUPBUFFS"] = function(message)
-    OctoGroupBuffsDB = OctoGroupBuffsDB or {}
+SLASH_GROUPBUFFS1 = "/groupbuffs"
+SlashCmdList["GROUPBUFFS"] = function(message)
+    GroupBuffsDB = GroupBuffsDB or {}
     message = string.lower(message or "")
     message = string.gsub(message, "^%s+", "")
     message = string.gsub(message, "%s+$", "")
@@ -279,13 +279,13 @@ SlashCmdList["OCTOGROUPBUFFS"] = function(message)
 
     if key and (action == "on" or action == "off" or action == "toggle") then
         if action == "toggle" then
-            OctoGroupBuffsDB[key] = not OctoGroupBuffsDB[key]
+            GroupBuffsDB[key] = not GroupBuffsDB[key]
         else
-            OctoGroupBuffsDB[key] = action == "on"
+            GroupBuffsDB[key] = action == "on"
         end
-        DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99Octo Group Buffs:|r " .. control .. " " .. (OctoGroupBuffsDB[key] and "on" or "off") .. ".")
+        DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99Group Buffs:|r " .. control .. " " .. (GroupBuffsDB[key] and "on" or "off") .. ".")
     else
-        DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99Octo Group Buffs commands:|r")
+        DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99Group Buffs commands:|r")
         DEFAULT_CHAT_FRAME:AddMessage("/groupbuffs group on|off|toggle")
         DEFAULT_CHAT_FRAME:AddMessage("/groupbuffs groupbox on|off|toggle")
         DEFAULT_CHAT_FRAME:AddMessage("/groupbuffs target on|off|toggle")
@@ -296,7 +296,7 @@ SlashCmdList["OCTOGROUPBUFFS"] = function(message)
             .. ", target checkbox: " .. (TargetCheckboxEnabled() and "on" or "off"))
     end
 
-    if OctoGroupBuffsCheckButton then OctoGroupBuffsCheckButton:SetChecked(BuffsEnabled()) end
-    if OctoTargetBuffsCheckButton then OctoTargetBuffsCheckButton:SetChecked(TargetBuffsEnabled()) end
+    if GroupBuffsCheckButton then GroupBuffsCheckButton:SetChecked(BuffsEnabled()) end
+    if TargetBuffsCheckButton then TargetBuffsCheckButton:SetChecked(TargetBuffsEnabled()) end
     UpdateAll()
 end
